@@ -51,7 +51,7 @@ jobs:
       azureSubscription: $(SubscriptionName)
       appName: $(ProductId)app0101
       appType: webApp
-      package: $(System.DefaultWorkingDirectory)/**/*.zip
+      package: $(Build.ArtifactStagingDirectory)/**/*.zip
 
   - task: AzureWebApp@1
     displayName: Deploy $(ProductId)app0102
@@ -59,4 +59,4 @@ jobs:
       azureSubscription: $(SubscriptionName)
       appName: $(ProductId)app0102
       appType: webApp
-      package: $(System.DefaultWorkingDirectory)/**/*.zip
+      package: $(Build.ArtifactStagingDirectory)/**/*.zip
