@@ -16,7 +16,7 @@ variables:
 
 jobs:
 
-- job: BuildWebApi
+- job: Build
 
   steps:
 
@@ -46,7 +46,7 @@ jobs:
       targetPath: $(Pipeline.Workspace)
       artifactName: drop
 
-- job: DeployCode
+- job: Deploy
 
   steps:
 
