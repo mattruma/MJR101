@@ -11,9 +11,6 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-variables:
-  productId: mjr100
-
 jobs:
 
 - job: Build
@@ -53,20 +50,20 @@ jobs:
   - bash: echo $(SubscriptionName)
 
   - task: AzureWebApp@1
-    displayName: Deploy $(productId)app0101
+    displayName: Deploy $(ProductId)app0101
     inputs:
       azureSubscription: $(SubscriptionName)
-      appName: $(productId)app0101
+      appName: $(ProductId)app0101
       appType: webApp
       package: $(Pipeline.Workspace)/**/*.zip 
       appSettings: -WEBSITE_RUN_FROM_PACKAGE 1
       deploymentMethod: runFromPackage
 
   - task: AzureWebApp@1
-    displayName: Deploy $(productId)app0102
+    displayName: Deploy $(ProductId)app0102
     inputs:
       azureSubscription: $(SubscriptionName)
-      appName: $(productId)app0102
+      appName: $(ProductId)app0102
       appType: webApp
       package: $(Pipeline.Workspace)/**/*.zip 
       appSettings: -WEBSITE_RUN_FROM_PACKAGE 1
