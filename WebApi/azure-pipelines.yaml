@@ -46,7 +46,9 @@ jobs:
   - bash: echo $(SubscriptionName)
   
   - task: DownloadBuildArtifacts@0
-
+    inputs:
+      artifactName: drop
+      
   - task: AzureWebApp@1
     displayName: Deploy $(ProductId)app0101
     inputs:
