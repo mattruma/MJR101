@@ -50,6 +50,7 @@ jobs:
   dependsOn: Build
 
   steps:
+  - bash: echo $(SubscriptionName)
 
   - task: AzureWebApp@1
     displayName: Deploy $(productId)app0101
