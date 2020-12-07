@@ -43,12 +43,12 @@ jobs:
   dependsOn: Build
 
   steps:
-  - bash: echo $(SubscriptionName)
-  
+  - checkout: none
+
   - task: DownloadBuildArtifacts@0
     inputs:
       artifactName: drop
-      
+
   - task: AzureWebApp@1
     displayName: Deploy $(ProductId)app0101
     inputs:
