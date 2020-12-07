@@ -47,6 +47,7 @@ jobs:
       artifactName: drop
 
 - job: Deploy
+  dependsOn: Build
 
   steps:
 
