@@ -44,6 +44,8 @@ jobs:
 
   steps:
   - bash: echo $(SubscriptionName)
+  
+  - task: DownloadBuildArtifacts@0
 
   - task: AzureWebApp@1
     displayName: Deploy $(ProductId)app0101
