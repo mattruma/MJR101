@@ -1,0 +1,82 @@
+trigger:
+  branches:
+      include:
+      - main
+  paths:
+    exclude:
+    - README.md
+    include:
+    - WebApi/*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  productId: mjr100
+
+stages:
+
+  - stage: Build
+
+    jobs:
+
+    - job: BuildWebApi
+
+      steps:
+
+      - task: UseDotNet@2
+        displayName: 'Use .NET Core sdk 5.x'
+        inputs:
+          version: 5.x
+
+      - task: DotNetCoreCLI@2
+        displayName: Build web project
+        inputs:
+          command: build
+          projects: WebApi/*.csproj
+
+      - task: DotNetCoreCLI@2
+        displayName: Publish artifacts
+        inputs:
+          command: publish
+          publishWebProjects: false
+          projects: WebApi/*.csproj
+          arguments: --configuration Release --output $(Build.ArtifactStagingDirectory)
+          zipAfterPublish: True
+
+      - task: PublishPipelineArtifact@1
+        displayName: Publish pipeline artifacts
+        inputs:
+          targetPath: $(Pipeline.Workspace)
+          artifactName: drop
+
+  - stage: Deploy
+
+    jobs:      
+ 
+    - deployment: DeployCode
+
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+
+            - task: AzureWebApp@1
+              displayName: Deploy $(productId)app0101
+              inputs:
+                azureSubscription: $(SubscriptionName)
+                appName: $(productId)app0101
+                appType: webApp
+                package: $(Pipeline.Workspace)/**/*.zip 
+                appSettings: -WEBSITE_RUN_FROM_PACKAGE 1
+                deploymentMethod: runFromPackage
+
+            - task: AzureWebApp@1
+              displayName: Deploy $(productId)app0102
+              inputs:
+                azureSubscription: $(SubscriptionName)
+                appName: $(productId)app0102
+                appType: webApp
+                package: $(Pipeline.Workspace)/**/*.zip 
+                appSettings: -WEBSITE_RUN_FROM_PACKAGE 1
+                deploymentMethod: runFromPackage
