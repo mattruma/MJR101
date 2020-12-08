@@ -1,0 +1,66 @@
+trigger:
+  branches:
+      include:
+      - main
+  paths:
+    exclude:
+    - README.md
+    include:
+    - WebApp/*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+jobs:
+
+- job: Build
+
+  steps:
+
+  - task: UseDotNet@2
+    inputs:
+      version: 5.x
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: build
+      projects: WebApp/*.csproj
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: publish
+      publishWebProjects: false
+      projects: WebApp/*.csproj
+      arguments: --configuration Release --output $(Build.ArtifactStagingDirectory)
+      zipAfterPublish: True
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: $(Build.ArtifactStagingDirectory)
+      artifactName: drop
+
+- job: Deploy
+  dependsOn: Build
+
+  steps:
+  - checkout: none
+
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      artifactName: drop
+
+  - task: AzureWebApp@1
+    displayName: Deploy $(ProductId)app0201
+    inputs:
+      azureSubscription: $(SubscriptionName)
+      appName: $(ProductId)app0201
+      appType: webApp
+      package: $(Build.ArtifactStagingDirectory)/**/*.zip
+
+  - task: AzureWebApp@1
+    displayName: Deploy $(ProductId)app0202
+    inputs:
+      azureSubscription: $(SubscriptionName)
+      appName: $(ProductId)app0202
+      appType: webApp
+      package: $(Build.ArtifactStagingDirectory)/**/*.zip

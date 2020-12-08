@@ -1,0 +1,198 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "resourcePrefix": {
+      "type": "string"
+    },
+    "primaryLocation": {
+      "type": "string",
+      "defaultValue": "eastus"
+    },
+    "secondaryLocation": {
+      "type": "string",
+      "defaultValue": "westus"
+    }
+  },
+  "functions": [],
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2018-02-01",
+      "name": "[format('{0}plan01', parameters('resourcePrefix'))]",
+      "location": "[parameters('primaryLocation')]",
+      "sku": {
+        "name": "F1",
+        "tier": "Free",
+        "size": "F1",
+        "family": "F",
+        "capacity": 1
+      },
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-06-01",
+      "name": "[format('{0}app0101', parameters('resourcePrefix'))]",
+      "location": "[parameters('primaryLocation')]",
+      "kind": "app,linux",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}plan01', parameters('resourcePrefix')))]",
+        "siteConfig": {
+          "netFrameworkVersion": "v5.0"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', format('{0}plan01', parameters('resourcePrefix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-06-01",
+      "name": "[format('{0}app0201', parameters('resourcePrefix'))]",
+      "location": "[parameters('primaryLocation')]",
+      "kind": "app,linux",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}plan01', parameters('resourcePrefix')))]",
+        "siteConfig": {
+          "netFrameworkVersion": "v5.0"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', format('{0}plan01', parameters('resourcePrefix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2018-02-01",
+      "name": "[format('{0}plan02', parameters('resourcePrefix'))]",
+      "location": "[parameters('secondaryLocation')]",
+      "sku": {
+        "name": "F1",
+        "tier": "Free",
+        "size": "F1",
+        "family": "F",
+        "capacity": 1
+      },
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-06-01",
+      "name": "[format('{0}app0102', parameters('resourcePrefix'))]",
+      "location": "[parameters('secondaryLocation')]",
+      "kind": "app",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}plan02', parameters('resourcePrefix')))]",
+        "siteConfig": {
+          "netFrameworkVersion": "v5.0"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', format('{0}plan02', parameters('resourcePrefix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-06-01",
+      "name": "[format('{0}app0202', parameters('resourcePrefix'))]",
+      "location": "[parameters('secondaryLocation')]",
+      "kind": "app",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}plan02', parameters('resourcePrefix')))]",
+        "siteConfig": {
+          "netFrameworkVersion": "v5.0"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', format('{0}plan02', parameters('resourcePrefix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/trafficmanagerprofiles",
+      "apiVersion": "2018-04-01",
+      "name": "[format('{0}app01tf', parameters('resourcePrefix'))]",
+      "location": "global",
+      "properties": {
+        "trafficRoutingMethod": "Performance",
+        "dnsConfig": {
+          "relativeName": "[format('{0}app01tf', parameters('resourcePrefix'))]"
+        },
+        "monitorConfig": {
+          "port": 80,
+          "protocol": "HTTP",
+          "path": "/health"
+        },
+        "endpoints": [
+          {
+            "id": "[concat(resourceId('Microsoft.Network/trafficManagerProfiles', format('{0}app01tf', parameters('resourcePrefix'))), format('/azureEndpoints/{0}app0101', parameters('resourcePrefix')))]",
+            "name": "[format('{0}app0101', parameters('resourcePrefix'))]",
+            "type": "Microsoft.Network/trafficManagerProfiles/azureEndpoints",
+            "properties": {
+              "targetResourceId": "[resourceId('Microsoft.Web/sites', format('{0}app0101', parameters('resourcePrefix')))]",
+              "target": "[format('{0}app0101.azurewebsites.net', parameters('resourcePrefix'))]",
+              "endpointLocation": "eastus"
+            }
+          },
+          {
+            "id": "[concat(resourceId('Microsoft.Network/trafficManagerProfiles', format('{0}app01tf', parameters('resourcePrefix'))), format('/azureEndpoints/{0}app0102', parameters('resourcePrefix')))]",
+            "name": "[format('{0}app0102', parameters('resourcePrefix'))]",
+            "type": "Microsoft.Network/trafficManagerProfiles/azureEndpoints",
+            "properties": {
+              "targetResourceId": "[resourceId('Microsoft.Web/sites', format('{0}app0102', parameters('resourcePrefix')))]",
+              "target": "[format('{0}app0102.azurewebsites.net', parameters('resourcePrefix'))]",
+              "endpointLocation": "westus"
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('{0}app0101', parameters('resourcePrefix')))]",
+        "[resourceId('Microsoft.Web/sites', format('{0}app0102', parameters('resourcePrefix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/trafficmanagerprofiles",
+      "apiVersion": "2018-04-01",
+      "name": "[format('{0}app02tf', parameters('resourcePrefix'))]",
+      "location": "global",
+      "properties": {
+        "trafficRoutingMethod": "Performance",
+        "dnsConfig": {
+          "relativeName": "[format('{0}app02tf', parameters('resourcePrefix'))]"
+        },
+        "monitorConfig": {
+          "port": 80,
+          "protocol": "HTTP",
+          "path": "/health"
+        },
+        "endpoints": [
+          {
+            "id": "[concat(resourceId('Microsoft.Network/trafficManagerProfiles', format('{0}app02tf', parameters('resourcePrefix'))), format('/azureEndpoints/{0}app0201', parameters('resourcePrefix')))]",
+            "name": "[format('{0}app0201', parameters('resourcePrefix'))]",
+            "type": "Microsoft.Network/trafficManagerProfiles/azureEndpoints",
+            "properties": {
+              "targetResourceId": "[resourceId('Microsoft.Web/sites', format('{0}app0201', parameters('resourcePrefix')))]",
+              "target": "[format('{0}app0201.azurewebsites.net', parameters('resourcePrefix'))]",
+              "endpointLocation": "eastus"
+            }
+          },
+          {
+            "id": "[concat(resourceId('Microsoft.Network/trafficManagerProfiles', format('{0}app02tf', parameters('resourcePrefix'))), format('/azureEndpoints/{0}app0202', parameters('resourcePrefix')))]",
+            "name": "[format('{0}app0202', parameters('resourcePrefix'))]",
+            "type": "Microsoft.Network/trafficManagerProfiles/azureEndpoints",
+            "properties": {
+              "targetResourceId": "[resourceId('Microsoft.Web/sites', format('{0}app0202', parameters('resourcePrefix')))]",
+              "target": "[format('{0}app0202.azurewebsites.net', parameters('resourcePrefix'))]",
+              "endpointLocation": "westus"
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', format('{0}app0201', parameters('resourcePrefix')))]",
+        "[resourceId('Microsoft.Web/sites', format('{0}app0202', parameters('resourcePrefix')))]"
+      ]
+    }
+  ]
+}
