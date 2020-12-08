@@ -7,6 +7,9 @@ trigger:
     - README.md
     include:
     - WebApi/*
+    - main.bicep
+    - main.json
+    - main.ps1
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -62,5 +65,13 @@ jobs:
     inputs:
       azureSubscription: $(SubscriptionName)
       appName: $(ProductId)app0102
+      appType: webApp
+      package: $(Build.ArtifactStagingDirectory)/**/*.zip
+
+  - task: AzureWebApp@1
+    displayName: Deploy $(ProductId)app0103
+    inputs:
+      azureSubscription: $(SubscriptionName)
+      appName: $(ProductId)app0103
       appType: webApp
       package: $(Build.ArtifactStagingDirectory)/**/*.zip

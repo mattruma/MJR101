@@ -1,28 +1,21 @@
 param resourcePrefix string 
+param appPlanResourceGroupName string 
+param primaryAppPlanName string 
 param primaryLocation string = 'eastus'
+param secondaryAppPlanName string
 param secondaryLocation string = 'westus'
 
-resource appServicePlan01 'Microsoft.Web/serverFarms@2018-02-01' = {
-  name: '${resourcePrefix}plan01'
-  location: primaryLocation
-  sku: {
-    name: 'F1'
-    tier: 'Free'
-    size: 'F1'
-    family: 'F'
-    capacity: 1
-  }
-  properties: {}
-}
+var primaryAppPlanId = resourceId(appPlanResourceGroupName, 'Microsoft.Web/serverFarms', primaryAppPlanName)
 
 resource appService0101 'Microsoft.Web/sites@2020-06-01' = {
   name: '${resourcePrefix}app0101'
   location: primaryLocation
   kind: 'app,linux'
   properties: {
-    serverFarmId: appServicePlan01.id
+    serverFarmId: primaryAppPlanId
     siteConfig: {
       netFrameworkVersion: 'v5.0'
+      linuxFxVersion: 'DOTNETCORE|5.0'
     }
   }
 }
@@ -32,34 +25,25 @@ resource appService0201 'Microsoft.Web/sites@2020-06-01' = {
   location: primaryLocation
   kind: 'app,linux'
   properties: {
-    serverFarmId: appServicePlan01.id
+    serverFarmId: primaryAppPlanId
     siteConfig: {
       netFrameworkVersion: 'v5.0'
+      linuxFxVersion: 'DOTNETCORE|5.0'
     }
   }
 }
 
-resource appServicePlan02 'Microsoft.Web/serverFarms@2018-02-01' = {
-  name: '${resourcePrefix}plan02'
-  location: secondaryLocation
-  sku: {
-    name: 'F1'
-    tier: 'Free'
-    size: 'F1'
-    family: 'F'
-    capacity: 1
-  }
-  properties: {}
-}
+var secondaryAppPlanId = resourceId(appPlanResourceGroupName, 'Microsoft.Web/serverFarms', secondaryAppPlanName)
 
 resource appService0102 'Microsoft.Web/sites@2020-06-01' = {
   name: '${resourcePrefix}app0102'
   location: secondaryLocation
   kind: 'app'
   properties: {
-    serverFarmId: appServicePlan02.id
+    serverFarmId: secondaryAppPlanId
     siteConfig: {
       netFrameworkVersion: 'v5.0'
+      linuxFxVersion: 'DOTNETCORE|5.0'
     }
   }
 }
@@ -69,9 +53,10 @@ resource appService0202 'Microsoft.Web/sites@2020-06-01' = {
   location: secondaryLocation
   kind: 'app'
   properties: {
-    serverFarmId: appServicePlan02.id
+    serverFarmId: secondaryAppPlanId
     siteConfig: {
       netFrameworkVersion: 'v5.0'
+      linuxFxVersion: 'DOTNETCORE|5.0'
     }
   }
 }
@@ -83,6 +68,7 @@ resource trafficManagerAppService01 'Microsoft.Network/trafficManagerProfiles@20
     trafficRoutingMethod: 'Performance'
     dnsConfig: {
       relativeName: '${resourcePrefix}app01tf'
+      ttl: 60
     }
     monitorConfig: {
       port: 80
@@ -121,6 +107,7 @@ resource trafficManagerAppService02 'Microsoft.Network/trafficManagerProfiles@20
     trafficRoutingMethod: 'Performance'
     dnsConfig: {
       relativeName: '${resourcePrefix}app02tf'
+      ttl: 60
     }
     monitorConfig: {
       port: 80

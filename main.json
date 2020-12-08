@@ -5,9 +5,18 @@
     "resourcePrefix": {
       "type": "string"
     },
+    "appPlanResourceGroupName": {
+      "type": "string"
+    },
+    "primaryAppPlanName": {
+      "type": "string"
+    },
     "primaryLocation": {
       "type": "string",
       "defaultValue": "eastus"
+    },
+    "secondaryAppPlanName": {
+      "type": "string"
     },
     "secondaryLocation": {
       "type": "string",
@@ -15,21 +24,11 @@
     }
   },
   "functions": [],
+  "variables": {
+    "primaryAppPlanId": "[resourceId(parameters('appPlanResourceGroupName'), 'Microsoft.Web/serverFarms', parameters('primaryAppPlanName'))]",
+    "secondaryAppPlanId": "[resourceId(parameters('appPlanResourceGroupName'), 'Microsoft.Web/serverFarms', parameters('secondaryAppPlanName'))]"
+  },
   "resources": [
-    {
-      "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2018-02-01",
-      "name": "[format('{0}plan01', parameters('resourcePrefix'))]",
-      "location": "[parameters('primaryLocation')]",
-      "sku": {
-        "name": "F1",
-        "tier": "Free",
-        "size": "F1",
-        "family": "F",
-        "capacity": 1
-      },
-      "properties": {}
-    },
     {
       "type": "Microsoft.Web/sites",
       "apiVersion": "2020-06-01",
@@ -37,14 +36,12 @@
       "location": "[parameters('primaryLocation')]",
       "kind": "app,linux",
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}plan01', parameters('resourcePrefix')))]",
+        "serverFarmId": "[variables('primaryAppPlanId')]",
         "siteConfig": {
-          "netFrameworkVersion": "v5.0"
+          "netFrameworkVersion": "v5.0",
+          "linuxFxVersion": "DOTNETCORE|5.0"
         }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('{0}plan01', parameters('resourcePrefix')))]"
-      ]
+      }
     },
     {
       "type": "Microsoft.Web/sites",
@@ -53,28 +50,12 @@
       "location": "[parameters('primaryLocation')]",
       "kind": "app,linux",
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}plan01', parameters('resourcePrefix')))]",
+        "serverFarmId": "[variables('primaryAppPlanId')]",
         "siteConfig": {
-          "netFrameworkVersion": "v5.0"
+          "netFrameworkVersion": "v5.0",
+          "linuxFxVersion": "DOTNETCORE|5.0"
         }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('{0}plan01', parameters('resourcePrefix')))]"
-      ]
-    },
-    {
-      "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2018-02-01",
-      "name": "[format('{0}plan02', parameters('resourcePrefix'))]",
-      "location": "[parameters('secondaryLocation')]",
-      "sku": {
-        "name": "F1",
-        "tier": "Free",
-        "size": "F1",
-        "family": "F",
-        "capacity": 1
-      },
-      "properties": {}
+      }
     },
     {
       "type": "Microsoft.Web/sites",
@@ -83,14 +64,12 @@
       "location": "[parameters('secondaryLocation')]",
       "kind": "app",
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}plan02', parameters('resourcePrefix')))]",
+        "serverFarmId": "[variables('secondaryAppPlanId')]",
         "siteConfig": {
-          "netFrameworkVersion": "v5.0"
+          "netFrameworkVersion": "v5.0",
+          "linuxFxVersion": "DOTNETCORE|5.0"
         }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('{0}plan02', parameters('resourcePrefix')))]"
-      ]
+      }
     },
     {
       "type": "Microsoft.Web/sites",
@@ -99,14 +78,12 @@
       "location": "[parameters('secondaryLocation')]",
       "kind": "app",
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', format('{0}plan02', parameters('resourcePrefix')))]",
+        "serverFarmId": "[variables('secondaryAppPlanId')]",
         "siteConfig": {
-          "netFrameworkVersion": "v5.0"
+          "netFrameworkVersion": "v5.0",
+          "linuxFxVersion": "DOTNETCORE|5.0"
         }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', format('{0}plan02', parameters('resourcePrefix')))]"
-      ]
+      }
     },
     {
       "type": "Microsoft.Network/trafficmanagerprofiles",
@@ -116,7 +93,8 @@
       "properties": {
         "trafficRoutingMethod": "Performance",
         "dnsConfig": {
-          "relativeName": "[format('{0}app01tf', parameters('resourcePrefix'))]"
+          "relativeName": "[format('{0}app01tf', parameters('resourcePrefix'))]",
+          "ttl": 60
         },
         "monitorConfig": {
           "port": 80,
@@ -159,7 +137,8 @@
       "properties": {
         "trafficRoutingMethod": "Performance",
         "dnsConfig": {
-          "relativeName": "[format('{0}app02tf', parameters('resourcePrefix'))]"
+          "relativeName": "[format('{0}app02tf', parameters('resourcePrefix'))]",
+          "ttl": 60
         },
         "monitorConfig": {
           "port": 80,
