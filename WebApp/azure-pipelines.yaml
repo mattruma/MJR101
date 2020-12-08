@@ -5,6 +5,9 @@ trigger:
   paths:
     exclude:
     - README.md
+    - main.bicep
+    - main.json
+    - main.ps1
     include:
     - WebApp/*
 
